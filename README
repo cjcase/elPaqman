@@ -5,21 +5,27 @@ elPaqman - Pacman clone with linear programming using LPSolve
 The purpose of this project is to make an example of a possible use of the shortest route algorithm in linear programming.
 The game is very basic, be sure to read the Wiki if you want to see our proposed software design.
 
---------------------
 1.0 - Authors
---------------------
+===================
 
 cjcase - cj@ccube.mx
 adndark - adndark@gmail.com
 itzcoatl90 - itzcoatl90@gmail.com
 
---------------------
 2.0 Installation
---------------------
+===================
 Please install LPSolve and the Java wrapper
 http://lpsolve.sourceforge.net/5.5/Java/README.html
 
---------------------
+Example for Ubuntu 32bits:
+* Download http://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_dev_ux32.tar.gz
+* Download http://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_java.zip
+* Extract both
+* cp <your download directory>/lp_solve_5.5.2.0_dev_ux32/liblpsolve55.so /usr/lib
+* cp <your download directory>/lp_solve_5.5_java/lib/ux32/liblpsolve55j.so /usr/lib
+
+That's it, if you want to make a new Java project using LPSolve, just add lp_solve_5.5_java/lib/lpsolve55j.jar to your project libraries
+
 3.0 License
---------------------
+===================
 elPaqman by cjcase, adndark and itzcoatl90 is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
