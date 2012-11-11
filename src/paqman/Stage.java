@@ -7,10 +7,15 @@ package paqman;
 // Code by cjcase
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -19,13 +24,15 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
-public class Stage extends JPanel{
+public class Stage extends JPanel implements ActionListener{
     private int matrix[][];
     private int matrix_width;
     private int matrix_height;
     private Vector<Character> ghosts;
-    private Thread pacman;
+    private Character pacman;
+    private Timer timer;
     
     Stage(int width, int height){
         matrix = new int[height][width];
@@ -39,8 +46,15 @@ public class Stage extends JPanel{
     Stage(String filepath){
         read_config(filepath);
         this.setBackground(Color.black);
-        this.setSize(matrix_height * 20, matrix_width * 20);
+        //Dimension d = new Dimension(matrix_height * 20, matrix_width * 20);
+        //this.setPreferredSize(d);
+        this.setSize(matrix_height * 40, matrix_width * 40);
         ghosts = new <Character>Vector();
+        setDoubleBuffered(true);
+        addKeyListener(new TAdapter());
+        setFocusable(true);
+        timer = new Timer(30, this);
+        timer.start();
     }
 
     public int[][] getMatrix() {
@@ -70,8 +84,14 @@ public class Stage extends JPanel{
     public void add_ghost(String config){
         Character ghost = new Character(config, this);
         ghosts.add(ghost);
-        ghost.run();
+        //ghost.run();      
+        
     }
+    
+    public void add_pacman(Character new_pacman){
+        this.pacman = new_pacman;
+    }
+    
     
     @Override
     public void paintComponent(Graphics g){
@@ -79,9 +99,14 @@ public class Stage extends JPanel{
         Graphics2D panel = (Graphics2D) g;
         Iterator <Character>itr = ghosts.iterator();
         Character ghost;
+        
         while(itr.hasNext()){
             ghost = itr.next();
-            ghost.draw(panel);
+            ghost.draw(panel);   
+        }
+        
+        if(pacman != null){
+            pacman.draw(panel);
         }
         //Image ii = new Image();
         //g.drawImage(ii, 5, 5, this);
@@ -136,6 +161,35 @@ public class Stage extends JPanel{
         return matrix;
     }
 
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        repaint();
+        //System.out.println("action performed");
+    }
+
    
-    
+    class TAdapter extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+          int key = e.getKeyCode();
+          switch(key){
+              case KeyEvent.VK_UP:
+                  pacman.set_direction(0);
+                  break;
+              case KeyEvent.VK_DOWN:
+                  pacman.set_direction(1);
+                  break;
+              case KeyEvent.VK_LEFT:
+                  pacman.set_direction(2);
+                  break;
+              case KeyEvent.VK_RIGHT:
+                  pacman.set_direction(3);
+                  break;
+          }
+
+        }
+          //System.out.println("keylistener");
+      }
 }

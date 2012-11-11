@@ -12,6 +12,8 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 
 // Code by cjcase
@@ -33,9 +35,11 @@ public class Character implements Runnable{
     private float delta;
     private float acumulated_delta;
     private int current_animation_index;
+    private int tmp_animation_index;
     //boundary;
     private String config_file;
     private Direction pacman_direction;
+    Thread runner;
     
     //stage references
     
@@ -54,14 +58,26 @@ public class Character implements Runnable{
         read_config(path);
         map_location_px = new Point2D.Double(0,0);
         current_animation_index = 0;
+        
+        runner = new Thread(this, "character");
+        runner.start();
     }
 
-    public void move(int direction){
-        set_direction(direction);
+    public void move(){
+        //set_direction(direction);
+        System.out.println("is_relative_pos_updated: " + is_relative_pos_updated());
+        
+        System.out.println("location.getX() " + location.getX() + " * " + 40 + " map_location_px.getX "+ map_location_px.getX());
+        
+        System.out.println("location.getY() " + location.getY() + " * " + 40 + " map_location_px.getX "+ map_location_px.getY());
         if(canMove() && is_relative_pos_updated()){
             update_location_in_matrix();
         }
-        update_location_in_pixels();
+        if(!is_relative_pos_updated()){
+            update_location_in_pixels();
+        }
+        
+        
     }
     
     public void set_direction(int direction){
@@ -124,16 +140,16 @@ public class Character implements Runnable{
         //int matrix[][] =  stage.getMatrix();
         switch(pacman_direction){
             case UP:
-                location.setLocation(location.getY()-1,location.getX());
+                location.setLocation(location.getX(),location.getY()-1);
                 break;
             case DOWN:
-                location.setLocation(location.getY()+1,location.getX());
+                location.setLocation(location.getX(),location.getY()+1);
                 break;
             case LEFT:
-                location.setLocation(location.getY(),location.getX()-1);
+                location.setLocation(location.getX()-1,location.getY());
                 break;
             case RIGHT:
-                location.setLocation(location.getY(),location.getX()+1);
+                location.setLocation(location.getX()+1,location.getY());
                 break;
             case STATIC:
                 break;
@@ -143,38 +159,75 @@ public class Character implements Runnable{
     private boolean is_relative_pos_updated(){
         int width = stage.getWidth();
         int height =  stage.getHeight();
-        int squares_size_px = height / stage.getMatrix_height();
+        int squares_size_px = 40;//height / stage.getMatrix_height();
+        //System.out.println("is relative pos updated");
+        //System.out.println(map_location_px.getX() + " " + location.getX());
+        //System.out.println(map_location_px.getY() + " " + location.getY());
         
-        if((map_location_px.getX()/squares_size_px != location.getX()) ||
-           (map_location_px.getY()/squares_size_px != location.getY())  ){
-            return false;
-        }else{
+        //System.out.println(map_location_px.getX() + "-" + (location.getX() * squares_size_px));
+        //System.out.println(map_location_px.getX() + "-" + (location.getX() * squares_size_px));;
+        //System.out.println(((location.getX() * squares_size_px)) - map_location_px.getX() < 40);
+        if( (Math.abs(((location.getX() * squares_size_px)) - map_location_px.getX()) < 2)  &&
+            (Math.abs(((location.getY() * squares_size_px)) - map_location_px.getY()) < 2)){
             return true;
+        }else{
+            return false;
         }    
     }
     
     private void update_location_in_pixels(){
         int width = stage.getWidth();
         int height =  stage.getHeight();
-        int squares_size_px = height / stage.getMatrix_height();
+        int squares_size_px = 40;
+        /*
+        System.out.println("location.getX() " + location.getX() + " * " + squares_size_px + " map_location_px.getX "+ map_location_px.getX());
         
-        if(location.getX() * squares_size_px != map_location_px.getX()){
+        System.out.println("location.getY() " + location.getY() + " * " + squares_size_px + " map_location_px.getX "+ map_location_px.getY());
+        */
+        /*
+        if(location.getX() * squares_size_px != map_location_px.getX() && ((location.getX() * squares_size_px)- map_location_px.getX() > 1 )){
             acumulate_delta();
             if(location.getX() * squares_size_px > map_location_px.getX()){
-                map_location_px.setLocation(map_location_px.getX() + get_acumulated_delta(), map_location_px.getY());
+                map_location_px.setLocation(map_location_px.getX() + delta, map_location_px.getY());
             }else{
-                map_location_px.setLocation(map_location_px.getX() - get_acumulated_delta(), map_location_px.getY());
+                map_location_px.setLocation(map_location_px.getX() - delta, map_location_px.getY());
             }
         }
         
-        if(location.getY() * squares_size_px != map_location_px.getY()){
+        if(location.getY() * squares_size_px != map_location_px.getY() && ((location.getY() * squares_size_px)- map_location_px.getY() > 1 )){
             acumulate_delta();
             if(location.getY() * squares_size_px > map_location_px.getY()){
-                map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() + get_acumulated_delta());
+                map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() + delta);
             }else{
-                map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() - get_acumulated_delta());
+                map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() - delta);
             }
         }
+        */
+        switch(pacman_direction){
+            case UP:
+                if(map_location_px.getY() > 0)
+                 map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() - delta);
+                break;
+                
+            case DOWN:
+                if(map_location_px.getY() < stage.getHeight())
+                map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() + delta);
+                break;
+                
+            case LEFT:
+                if(map_location_px.getX() > 0)
+                map_location_px.setLocation(map_location_px.getX() - delta, map_location_px.getY());
+                break;
+                
+            case RIGHT:
+                if(map_location_px.getY() < stage.getWidth())
+                map_location_px.setLocation(map_location_px.getX() + delta, map_location_px.getY());
+                break;
+        }
+        //System.out.println("square size px " + squares_size_px);
+        //System.out.println("square size px " + squares_size_px);
+        //System.out.println("map location px " + map_location_px.getX());
+        //System.out.println("map location px " + map_location_px.getY());
     }
     
     public void acumulate_delta(){
@@ -208,13 +261,13 @@ public class Character implements Runnable{
 
             while (animation_type < 4)   {
                 strLine = br.readLine();
-                System.out.println(strLine); 
+                //System.out.println(strLine); 
                 no_animations = Integer.parseInt(strLine);
                 animation_length =  no_animations;
                 image_index = 0;
                 while(no_animations-- > 0){
                     strLine = br.readLine();
-                    System.out.println(strLine);            
+                    //System.out.println(strLine);            
                     switch(animation_type){
                         case 0:
                             if(up_animation == null || up_animation_length != animation_length){
@@ -252,7 +305,8 @@ public class Character implements Runnable{
             }
             location =  new Point2D.Double(Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()));
             delta = (float) Float.parseFloat(br.readLine());
-
+            //System.out.println(location.getX());
+            //System.out.println(location.getY());
             //Close the input stream
             in.close();
             
@@ -263,30 +317,55 @@ public class Character implements Runnable{
         
     }
     
+    private void update_frame_animation(){
+        switch(pacman_direction){
+            case UP:
+                current_animation_index = tmp_animation_index++ % up_animation_length;
+                if(tmp_animation_index % up_animation_length == 0)tmp_animation_index = 0;
+                break;
+            case DOWN:
+                current_animation_index = tmp_animation_index++ % down_animation_length;
+                if(tmp_animation_index % down_animation_length == 0)tmp_animation_index = 0;
+                break;
+            case LEFT:
+                current_animation_index = tmp_animation_index++ % left_animation_length;
+                if(tmp_animation_index % left_animation_length == 0)tmp_animation_index = 0;
+                break;
+            case RIGHT:
+                current_animation_index = tmp_animation_index++ % right_animation_length;
+                if(tmp_animation_index % right_animation_length == 0)tmp_animation_index = 0;
+                break;
+            default:
+                current_animation_index = current_animation_index++ % right_animation_length;
+                if(tmp_animation_index % up_animation_length == 0)tmp_animation_index = 0;
+        }
+    }
+    
     public void draw(Graphics2D g2d){
         //DrawPacManLeft(Graphics2D g2d)
         switch(pacman_direction){
             case UP:
-                current_animation_index = current_animation_index++ % up_animation_length;
-                g2d.drawImage(up_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getX(), null);
+                //current_animation_index = current_animation_index++ % up_animation_length;
+                g2d.drawImage(up_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getY(), null);
                 break;
             case DOWN:
-                current_animation_index = current_animation_index++ % down_animation_length;
-                g2d.drawImage(down_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getX(), null);
+                //current_animation_index = current_animation_index++ % down_animation_length;
+                g2d.drawImage(down_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getY(), null);
                 break;
             case LEFT:
-                current_animation_index = current_animation_index++ % left_animation_length;
-                g2d.drawImage(left_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getX(), null);
+                //current_animation_index = current_animation_index++ % left_animation_length;
+                g2d.drawImage(left_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getY(), null);
                 break;
             case RIGHT:
-                current_animation_index = current_animation_index++ % right_animation_length;
-                g2d.drawImage(right_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getX(), null);
+                //current_animation_index = current_animation_index++ % right_animation_length;
+                g2d.drawImage(right_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getY(), null);
                 break;
             default:
-                current_animation_index = current_animation_index++ % right_animation_length;
-                g2d.drawImage(right_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getX(), null);
+                //current_animation_index = current_animation_index++ % right_animation_length;
+                g2d.drawImage(right_animation[current_animation_index], (int)map_location_px.getX(),(int) map_location_px.getY(), null);
         }
-        System.out.println(current_animation_index);
+        //System.out.println("");
+        //System.out.println(current_animation_index);
         //g2d.draw
     }
     
@@ -294,7 +373,16 @@ public class Character implements Runnable{
     
     @Override
     public void run() {
-        
+        while(true){
+            move();
+            update_frame_animation();
+            //System.out.println(this.current_animation_index);
+            try {
+                runner.sleep(100);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Character.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
 }
