@@ -1,0 +1,11 @@
+1
+img/ghost/ghost.png
+1
+img/ghost/ghost.png
+1
+img/ghost/ghost.png
+1
+img/ghost/ghost.png
+0
+0
+10

@@ -97,6 +97,9 @@ public class Stage extends JPanel implements ActionListener{
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         Graphics2D panel = (Graphics2D) g;
+        
+        drawMaze(g);
+        
         Iterator <Character>itr = ghosts.iterator();
         Character ghost;
         
@@ -108,10 +111,24 @@ public class Stage extends JPanel implements ActionListener{
         if(pacman != null){
             pacman.draw(panel);
         }
+        
+        
         //Image ii = new Image();
         //g.drawImage(ii, 5, 5, this);
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
+    }
+    
+    private void drawMaze(Graphics g){
+        g.setColor( Color.blue );
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(matrix[row][col] != 0)
+                g.drawRect( col * 40, row * 40, 35, 35 );
+            }
+        }
+        g.setColor(Color.RED);
+        g.drawRect(0,0,this.getMatrix_width()*40,this.getMatrix_height() * 40);
     }
     
     void read_config(String filepath){

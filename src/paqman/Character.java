@@ -40,14 +40,15 @@ public class Character implements Runnable{
     private String config_file;
     private Direction pacman_direction;
     Thread runner;
-    
+    private Point2D upper_left_boundary;
+    private Point2D lower_right_boundary;
     //stage references
     
     
     public Character(String path){
         config_file = path;
         read_config(path);
-        pacman_direction =  Direction.STATIC;
+        pacman_direction =  Direction.UP;
         map_location_px = new Point2D.Double(0,0);
     }
     
@@ -57,8 +58,9 @@ public class Character implements Runnable{
         pacman_direction =  Direction.UP;
         read_config(path);
         map_location_px = new Point2D.Double(0,0);
+        upper_left_boundary = new Point2D.Double(0,0);
+        lower_right_boundary = new Point2D.Double(0,0);
         current_animation_index = 0;
-        
         runner = new Thread(this, "character");
         runner.start();
     }
@@ -70,12 +72,13 @@ public class Character implements Runnable{
         System.out.println("location.getX() " + location.getX() + " * " + 40 + " map_location_px.getX "+ map_location_px.getX());
         
         System.out.println("location.getY() " + location.getY() + " * " + 40 + " map_location_px.getX "+ map_location_px.getY());
-        if(canMove() && is_relative_pos_updated()){
-            update_location_in_matrix();
-        }
-        if(!is_relative_pos_updated()){
-            update_location_in_pixels();
-        }
+        //if(canMove() && is_relative_pos_updated()){
+         update_location_in_matrix();
+        //}
+        //if(!is_relative_pos_updated()){
+         update_location_in_pixels();
+        //}
+         update_boundaries();
         
         
     }
@@ -102,12 +105,13 @@ public class Character implements Runnable{
         int matrix[][] =  stage.getMatrix();
         switch(pacman_direction){
             case UP:
-                if((int)location.getY() > 0 && matrix[(int)location.getY()-1][(int)location.getX()] == 0){
+                if((int)location.getY() >= 0 && map_location_px.getY() > (location.getY() * 40)){
                     return true;
-                }else{
-                    return false;
                 }
-                //break;
+                if((map_location_px.getY() - (location.getY() * 40) < 2) && matrix[(int)location.getY()-1][(int)location.getX()] == 0 ){
+                    return true;
+                }
+                return false;
                 
             case DOWN:
                 if((int)location.getY() < stage.getMatrix_height()-1 && matrix[(int)location.getY()+1][(int)location.getX()] == 0){
@@ -117,28 +121,45 @@ public class Character implements Runnable{
                 }
                 //
             case LEFT:
-                if((int)location.getX() > 0 && matrix[(int)location.getY()][(int)location.getX()-1] == 0){
+                System.out.println((upper_left_boundary.getY() - location.getY()*40) < 2);
+                System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * 40)));
+                System.out.println(lower_right_boundary.getY());
+                System.out.println((((location.getY()+1) * 40)));
+                if((int)location.getX() >= 0 && map_location_px.getX() > (location.getX() * 40) && 
+                        ((upper_left_boundary.getY() - location.getY()*40) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * 40)){
                     return true;
-                }else{
-                    return false;
                 }
+                System.out.println((upper_left_boundary.getY() - location.getY()*40) < 2);
+                System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * 40)));
+                System.out.println(lower_right_boundary.getY());
+                System.out.println((((location.getY()+1) * 40)));
+                if((((upper_left_boundary.getY() - location.getY()*40) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * 40) &&
+                        map_location_px.getX() - (location.getX() * 40) < 2) && matrix[(int)location.getY()][(int)location.getX()-1] == 0){
+                    return true;
+                }
+                return false;
+                
                 //break;
             case RIGHT:
-                if((int)location.getX() < stage.getMatrix_width()-1 && matrix[(int)location.getY()][(int)location.getX()+1] == 0){
+                if(location.getX() < stage.getMatrix_width()-1 &&matrix[(int)location.getY()][(int)location.getX()+1] == 0 && (map_location_px.getY()-location.getY()*40) < 2){
                     return true;
-                }else{
-                    return false;
                 }
+                return false;
             case STATIC:
                 return false;
+            
         }
-        
         return true;
+    }
+    
+    private void update_boundaries(){
+        upper_left_boundary.setLocation(map_location_px.getX(), map_location_px.getY());
+        lower_right_boundary.setLocation(map_location_px.getX() + 40, map_location_px.getY() + 40);
     }
     
     private void update_location_in_matrix(){
         //int matrix[][] =  stage.getMatrix();
-        switch(pacman_direction){
+        /*switch(pacman_direction){
             case UP:
                 location.setLocation(location.getX(),location.getY()-1);
                 break;
@@ -153,20 +174,15 @@ public class Character implements Runnable{
                 break;
             case STATIC:
                 break;
-        }
+        }*/
+        location.setLocation((int)(map_location_px.getX()) / 40 , (int)(map_location_px.getY()) / 40 );
     }
     
     private boolean is_relative_pos_updated(){
         int width = stage.getWidth();
         int height =  stage.getHeight();
         int squares_size_px = 40;//height / stage.getMatrix_height();
-        //System.out.println("is relative pos updated");
-        //System.out.println(map_location_px.getX() + " " + location.getX());
-        //System.out.println(map_location_px.getY() + " " + location.getY());
-        
-        //System.out.println(map_location_px.getX() + "-" + (location.getX() * squares_size_px));
-        //System.out.println(map_location_px.getX() + "-" + (location.getX() * squares_size_px));;
-        //System.out.println(((location.getX() * squares_size_px)) - map_location_px.getX() < 40);
+ 
         if( (Math.abs(((location.getX() * squares_size_px)) - map_location_px.getX()) < 2)  &&
             (Math.abs(((location.getY() * squares_size_px)) - map_location_px.getY()) < 2)){
             return true;
@@ -205,22 +221,22 @@ public class Character implements Runnable{
         */
         switch(pacman_direction){
             case UP:
-                if(map_location_px.getY() > 0)
+                if(map_location_px.getY() > 0 && canMove() && canMove())
                  map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() - delta);
                 break;
                 
             case DOWN:
-                if(map_location_px.getY() < stage.getHeight())
+                if(map_location_px.getY() < stage.getHeight() && canMove())
                 map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() + delta);
                 break;
                 
             case LEFT:
-                if(map_location_px.getX() > 0)
+                if(map_location_px.getX() > 0 && canMove() && canMove())
                 map_location_px.setLocation(map_location_px.getX() - delta, map_location_px.getY());
                 break;
                 
             case RIGHT:
-                if(map_location_px.getY() < stage.getWidth())
+                if(map_location_px.getY() < stage.getWidth() && canMove())
                 map_location_px.setLocation(map_location_px.getX() + delta, map_location_px.getY());
                 break;
         }

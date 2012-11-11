@@ -28,18 +28,14 @@ public class RunGame{
         
         
         Stage stage = new Stage("map.txt");
-        //stage.setSize(300,300);
-        stage.setVisible(true);
-        stage.print_matrix();
-        //stage.add_ghost("config.txt");
         
-        stage.add_pacman(new Character("config.txt", stage));
-        //Dimension d = new Dimension(300,300);
-        //stage.setPreferredSize(d);
-        //Thread nt = new Thread(new Character("config.txt", stage), "test");
-        //nt.start();
+        stage.setVisible(true);
+        //stage.print_matrix();
+        stage.add_ghost("ghost_config.txt");
+        
+        stage.add_pacman(new Character("pacman_config.txt", stage));
         JFrame window = new JFrame();
-        window.setSize(stage.getWidth(),stage.getHeight());
+        window.setSize(stage.getMatrix_width()*40,stage.getMatrix_height()*40);
         window.setVisible(true);
         //window.setLayout(new BorderLayout());
         //window.add(stage, BorderLayout.CENTER);
