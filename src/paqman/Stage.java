@@ -25,14 +25,19 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import java.lang.reflect.*;
 
 public class Stage extends JPanel implements ActionListener{
+    final int TILE_LEN=40;
     private int matrix[][];
     private int matrix_width;
     private int matrix_height;
     private Vector<Character> ghosts;
     private Character pacman;
     private Timer timer;
+    private Vector<LineTrace> tracert;
+    private boolean calculeMatrix;
+    
     
     Stage(int width, int height){
         matrix = new int[height][width];
@@ -45,11 +50,14 @@ public class Stage extends JPanel implements ActionListener{
     
     Stage(String filepath){
         read_config(filepath);
+        calculeMatrix=false;
         this.setBackground(Color.black);
         //Dimension d = new Dimension(matrix_height * 20, matrix_width * 20);
         //this.setPreferredSize(d);
-        this.setSize(matrix_height * 40, matrix_width * 40);
+        this.setSize(matrix_height * TILE_LEN, matrix_width * TILE_LEN);
         ghosts = new <Character>Vector();
+        tracert = new <LineTrace>Vector();
+        calculeMaze();
         setDoubleBuffered(true);
         addKeyListener(new TAdapter());
         setFocusable(true);
@@ -96,39 +104,225 @@ public class Stage extends JPanel implements ActionListener{
     @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
-        Graphics2D panel = (Graphics2D) g;
-        
-        drawMaze(g);
-        
-        Iterator <Character>itr = ghosts.iterator();
-        Character ghost;
-        
-        while(itr.hasNext()){
-            ghost = itr.next();
-            ghost.draw(panel);   
-        }
-        
-        if(pacman != null){
-            pacman.draw(panel);
-        }
-        
-        
+        //Graphics2D panel = (Graphics2D) g;
+        //drawMaze(g);
+        drawMazeTracer(g);
+        drawDinamics(g);
         //Image ii = new Image();
         //g.drawImage(ii, 5, 5, this);
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
     }
     
+    private void drawDinamics(Graphics g){
+        drawPoints(g);
+        drawGhosts(g);
+        drawPacman(g);
+    }
+    
+    private void drawPoints(Graphics g){
+        g.setColor( Color.yellow );
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(matrix[row][col]==2){
+                    pointAt(g,col*TILE_LEN,row*TILE_LEN,TILE_LEN);
+                }
+            }
+        }
+    }
+    
+    private void pointAt(Graphics g,int x,int y,int size){
+        g.fillOval(x+(size/3), y+(size/3), size/3, size/3);
+    }
+    
+    private void drawGhosts(Graphics g){
+        Iterator <Character>itr = ghosts.iterator();
+        Character ghost;
+        
+        while(itr.hasNext()){
+            ghost = itr.next();
+            ghost.draw((Graphics2D) g);   
+        }
+    }
+    
+    private void drawPacman(Graphics g){
+        if(pacman != null){
+            pacman.draw((Graphics2D) g);
+        }
+    }
+    
+    private void drawMazeTracer(Graphics g){
+        g.setColor( Color.blue );
+        Iterator <LineTrace>itr = tracert.iterator();
+        LineTrace trace;
+        while(itr.hasNext()){
+            trace = itr.next();
+            trace.execute(g);
+        }
+        g.setColor(Color.RED);
+        g.drawRect(0,0,this.getMatrix_width()*TILE_LEN,this.getMatrix_height() * TILE_LEN);
+    }
+    
+    private void calculeMaze(){
+        calculeRoof();
+        calculeFloor();
+        calculeLeftSide();
+        calculeRightSide();
+    }
+    
+    private void calculeRoof(){
+        boolean matrixAuxiliar[][] = new boolean[matrix_height][matrix_width];
+        int auxLen;
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(!matrixAuxiliar[row][col] && matrix[row][col]==1){
+                    auxLen = chaseRoof(row, col);
+                    for(int i=0;i<auxLen;i++){
+                        matrixAuxiliar[row][col+i]=true;
+                    }
+                    if(auxLen>0){
+                        tracert.add(new LineTrace(col,row,col+auxLen,row, TILE_LEN));
+         //tracert.add(new LineTrace(this,"drawHorizontalLine",new Object[] {(Object) g,(Object)row,(Object) col,(Object) auxLen}));
+                    }
+                }
+            }
+        }
+    }
+    
+    private int chaseRoof(int row,int col){
+        int len=0;
+        if(!(row > 0 && matrix[row-1][col]==1)){
+            len++;
+            if(col < matrix_width-1 && matrix[row][col+1] == 1){
+                len+=chaseRoof(row, col+1);
+            }
+        }
+        return len;
+    }
+    
+    private void calculeFloor(){
+        boolean matrixAuxiliar[][] = new boolean[matrix_height][matrix_width];
+        int auxLen;
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(!matrixAuxiliar[row][col] && matrix[row][col]==1){
+                    auxLen = chaseFloor(row, col);
+                    for(int i=0;i<auxLen;i++){
+                        matrixAuxiliar[row][col+i]=true;
+                    }
+                    if(auxLen>0){
+                        tracert.add(new LineTrace(col,row+1,col+auxLen,row+1, TILE_LEN));
+         //tracert.add(new LineTrace(this,"drawHorizontalLine",new Object[] {(Object) g,(Object)row,(Object) col,(Object) auxLen}));
+                    }
+                }
+            }
+        }
+    }
+    
+    private int chaseFloor(int row,int col){
+        int len=0;
+        if(row < matrix_height-1 && matrix[row+1][col]!=1){
+            len++;
+            if(col < matrix_width-1 && matrix[row][col+1] == 1){
+                len+=chaseFloor(row, col+1);
+            }
+        }
+        return len;
+    }
+    
+    private void calculeLeftSide(){
+        boolean matrixAuxiliar[][] = new boolean[matrix_height][matrix_width];
+        int auxWit;
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(!matrixAuxiliar[row][col] && matrix[row][col]==1){
+                    auxWit = chaseLefts(row, col);
+                    for(int i=0;i<auxWit;i++){
+                        matrixAuxiliar[row+i][col]=true;
+                    }
+                    if(auxWit>0){
+                        tracert.add(new LineTrace(col,row,col,row+auxWit, TILE_LEN));
+         //tracert.add(new LineTrace(this,"drawHorizontalLine",new Object[] {(Object) g,(Object)row,(Object) col,(Object) auxLen}));
+                    }
+                }
+            }
+        }
+    }
+    
+    private int chaseLefts(int row,int col){
+        int wit=0;
+        if(!(col > 0 && matrix[row][col-1]==1)){
+            wit++;
+            if(row < matrix_height-1 && matrix[row+1][col] == 1){
+                wit+=chaseLefts(row+1, col);
+            }
+        }
+        return wit;
+    }
+    
+    private void calculeRightSide(){
+        boolean matrixAuxiliar[][] = new boolean[matrix_height][matrix_width];
+        int auxWit;
+        for(int row = 0; row < matrix_height; row++){
+            for(int col = 0; col < matrix_width; col++){
+                if(!matrixAuxiliar[row][col] && matrix[row][col]==1){
+                    auxWit = chaseRights(row, col);
+                    for(int i=0;i<auxWit;i++){
+                        matrixAuxiliar[row+i][col]=true;
+                    }
+                    if(auxWit>0){
+                        tracert.add(new LineTrace(col+1,row,col+1,row+auxWit, TILE_LEN));
+         //tracert.add(new LineTrace(this,"drawHorizontalLine",new Object[] {(Object) g,(Object)row,(Object) col,(Object) auxLen}));
+                    }
+                }
+            }
+        }
+    }
+    
+    private int chaseRights(int row,int col){
+        int wit=0;
+        if(!(col < matrix_width -1 && matrix[row][col+1]==1)){
+            wit++;
+            if(row < matrix_height-1 && matrix[row+1][col] == 1){
+                wit+=chaseRights(row+1, col);
+            }
+        }
+        return wit;
+    }
+    
+    /*
+    public void drawHorizontalLine(Object g, Object x1, Object y1, Object x2){
+        //Graphics2D g, Integer x1, Integer y1, Integer x2){
+        ((Graphics) g).drawLine((Integer) x1, (Integer) y1, (Integer) x2, (Integer) y1);
+    }
+    
+    private void drawVerticalLine(Graphics g){
+    
+    }*/
+    
     private void drawMaze(Graphics g){
         g.setColor( Color.blue );
         for(int row = 0; row < matrix_height; row++){
             for(int col = 0; col < matrix_width; col++){
-                if(matrix[row][col] != 0)
-                g.drawRect( col * 40, row * 40, 35, 35 );
+                drawTile(g, matrix[row][col], col, row);
             }
         }
         g.setColor(Color.RED);
-        g.drawRect(0,0,this.getMatrix_width()*40,this.getMatrix_height() * 40);
+        g.drawRect(0,0,this.getMatrix_width()*TILE_LEN,this.getMatrix_height() * TILE_LEN);
+    }
+    
+    private void drawTile(Graphics g, int tile, int col, int row){
+        switch (tile){
+            case 0:
+            break;
+            case 1:
+                g.drawRect( col * TILE_LEN, row * TILE_LEN, TILE_LEN-5, TILE_LEN-5 );
+            break;
+            case 2:
+            break;
+            default:
+            break;
+        }
     }
     
     void read_config(String filepath){
@@ -209,4 +403,70 @@ public class Stage extends JPanel implements ActionListener{
         }
           //System.out.println("keylistener");
       }
+
+    /*static public class LineTrace {
+        private Object maze;
+        private Method draw;
+        private Object[] parameters;
+        
+        public LineTrace( Object pmaze, String lineToDraw, Object[] arguments ) {
+            maze = pmaze;
+            parameters = arguments;
+            Class cls = pmaze.getClass();
+            Class[] argTypes = new Class[parameters.length];
+            for (int i=0; i < parameters.length; i++){
+                argTypes[i] = parameters[i].getClass();
+            }
+            try {
+                draw = cls.getMethod( lineToDraw, argTypes );
+            } catch( NoSuchMethodException e ) {
+                System.out.println( e );
+            }
+        }
+        
+        public Object execute() {
+            try {
+                return draw.invoke( maze, parameters );
+            } catch(IllegalAccessException e) {
+                System.out.println( e );
+            } catch(InvocationTargetException e) {
+                System.out.println( e );
+            }
+        return null;
+        }
+        
+    }*/
 }
+
+
+/*
+ 
+ public static void main( String[] args ) {
+      LineTrace[] objs = { new LineTrace(1), new LineTrace(2) };
+      System.out.print( "Normal call results: " );
+      System.out.print( objs[0].addOne( new Integer(3) ) + " " );
+      System.out.print( objs[1].addTwo( new Integer(4),
+                                        new Integer(5) ) + " " );
+      Command[] cmds = {
+         new Command( objs[0], "addOne", new Integer[] { new Integer(3) } ),
+         new Command( objs[1], "addTwo", new Integer[] { new Integer(4),
+                                                         new Integer(5) } ) };
+      System.out.print( "\nReflection results:  " );
+      for (int i=0; i < cmds.length; i++)
+          System.out.print( cmds[i].execute() + " " );
+      System.out.println();
+}
+ 
+ 
+ private int state;
+   public LineTrace( int in ) {
+      state = in;
+   }
+   public int addOne( Integer one ) {
+      return state + one.intValue();
+   }
+   public int addTwo( Integer one, Integer two ) {
+      return state + one.intValue() + two.intValue();
+   }
+ 
+ */

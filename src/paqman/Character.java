@@ -67,11 +67,11 @@ public class Character implements Runnable{
 
     public void move(){
         //set_direction(direction);
-        System.out.println("is_relative_pos_updated: " + is_relative_pos_updated());
+        //System.out.println("is_relative_pos_updated: " + is_relative_pos_updated());
         
-        System.out.println("location.getX() " + location.getX() + " * " + 40 + " map_location_px.getX "+ map_location_px.getX());
+        //System.out.println("location.getX() " + location.getX() + " * " + 40 + " map_location_px.getX "+ map_location_px.getX());
         
-        System.out.println("location.getY() " + location.getY() + " * " + 40 + " map_location_px.getX "+ map_location_px.getY());
+        //System.out.println("location.getY() " + location.getY() + " * " + 40 + " map_location_px.getX "+ map_location_px.getY());
         //if(canMove() && is_relative_pos_updated()){
          update_location_in_matrix();
         //}
