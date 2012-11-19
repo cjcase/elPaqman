@@ -11,6 +11,7 @@ package paqman;
 
 import java.awt.Color;
 
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -40,7 +41,8 @@ public class Stage extends JPanel implements ActionListener{
     private Timer timer;
     private Vector<LineTrace> tracert;
     private int ballsToEat;
-    
+    private Font smallfont;
+    private String scoreS;
     
     Stage(int width, int height){
         matrix = new int[height][width];
@@ -59,11 +61,13 @@ public class Stage extends JPanel implements ActionListener{
         ghosts = new <Character>Vector();
         tracert = new <LineTrace>Vector();
         calculeMaze();
+        smallfont = new Font("Helvetica", Font.BOLD, 14);
         setDoubleBuffered(true);
         addKeyListener(new TAdapter());
         setFocusable(true);
         timer = new Timer(30, this);
         timer.start();
+        scoreS = "Score: " + 0 + " Lifes: " + 3;
     }
 
     public int[][] getMatrix() {
@@ -98,7 +102,6 @@ public class Stage extends JPanel implements ActionListener{
     public void add_pacman(Pacman new_pacman){
         this.pacman = new_pacman;
     }
-    
     
     @Override
     public void paintComponent(Graphics g){
@@ -161,6 +164,9 @@ public class Stage extends JPanel implements ActionListener{
         }
         g.setColor(Color.RED);
         g.drawRect(0,0,this.getMatrix_width()*RunGame.TILE_LEN,this.getMatrix_height() * RunGame.TILE_LEN);
+        g.setFont(smallfont);
+        g.setColor(Color.WHITE);
+        g.drawString(scoreS, 0, matrix_height*RunGame.TILE_LEN);
     }
     
     private void calculeMaze(){
@@ -289,6 +295,10 @@ public class Stage extends JPanel implements ActionListener{
         return wit;
     }
     
+    public int getPacmanLifes(){
+        return pacman.lifes;
+    }
+    
     void read_config(String filepath){
         try{
             // Open the file that is the first 
@@ -341,10 +351,15 @@ public class Stage extends JPanel implements ActionListener{
         calculeGhostCol();
     }
     
-    private void calculePointCol(){
+    private void calculePointCol() throws IOException{
         if(matrix[(int)pacman.getLocation().getY()][(int)pacman.getLocation().getX()]==2){
             matrix[(int)pacman.getLocation().getY()][(int)pacman.getLocation().getX()]=0;
             Game.pointToScore();
+            ballsToEat--;
+            reguleScore();
+        }
+        if(ballsToEat<=0){
+            RunGame.endGame(true);
         }
     }
 
@@ -353,8 +368,6 @@ public class Stage extends JPanel implements ActionListener{
         Character ghost;
         while(itr.hasNext()){
             ghost = itr.next();
-            //System.out.println("GHOST:"+ghost.locationToString());
-            //System.out.println("PACMAN:"+pacman.locationToString());
             if((int)ghost.getLocation().getY()==(int)pacman.getLocation().getY() &&
                 (int)ghost.getLocation().getX()==(int)pacman.getLocation().getX()){
                 Game.ghostToScore();
@@ -363,13 +376,18 @@ public class Stage extends JPanel implements ActionListener{
         }
     }
     
+    private void reguleScore(){
+        scoreS = "Score: " + Game.score + " Lifes: " + getPacmanLifes();
+    }
+    
     private void die() throws IOException{
         pacman.lifes--;
         if(pacman.lifes>=0){
             pacman.resetLocation();
         } else {
-            RunGame.endGame();
+            RunGame.endGame(false);
         }
+        reguleScore();
     }
     
     @Override

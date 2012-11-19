@@ -9,13 +9,14 @@ package paqman;
  * @author itzcoatl90
  */
 
+import java.io.IOException;
 import javax.swing.JFrame;
 
 public class Game {
 
     public static Stage stage;
     public static int score;
-    private Game(){score = 0;}
+    private Game() {}
     
     private static class GameHolder {
         private static final Game INSTANCE = new Game();
@@ -26,6 +27,7 @@ public class Game {
     }
     
     public void setFirstStage(String mappath,String ghostpath, String pacmanpath){
+        score = 0;
         stage = new Stage(mappath);
         stage.setVisible(true);
         stage.add_ghost(ghostpath);

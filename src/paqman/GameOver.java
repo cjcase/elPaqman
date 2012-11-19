@@ -13,29 +13,36 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 /**
  *
  * @author itzcoatl90
  */
 public class GameOver extends JPanel implements ActionListener{
-    private JButton ini;
-    public static BufferedImage image;
     
-    public GameOver() throws IOException{
+    private JButton ini;
+    private static BufferedImage image;
+    private boolean win;
+    
+    public GameOver(){
+    }
+    
+    public void setWin(boolean pwin) throws IOException{
+        win=pwin;
         initComponents();
     }
     
     private void initComponents() throws IOException{
         ini = new JButton("¡Otra vez!");
-        image = ImageIO.read(new File("img/GameOver.png"));
+        if(win){
+            image = ImageIO.read(new File("img/Ganaste.jpg"));
+        } else {
+            image = ImageIO.read(new File("img/GameOver.png"));
+        }
         ini.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                IniciarClick(evt);
-            }
-        });
+                IniciarClick(evt); }  });
         this.setLayout(null);
-        ini.setBounds(7*RunGame.TILE_LEN, 9*RunGame.TILE_LEN, 4*RunGame.TILE_LEN, (int)(0.7*RunGame.TILE_LEN));
+        ini.setBounds(3*RunGame.TILE_LEN, (int)(8.75*RunGame.TILE_LEN), 4*RunGame.TILE_LEN, (int)(0.7*RunGame.TILE_LEN));
         this.setBackground(Color.BLACK);
         this.add(ini);
     }

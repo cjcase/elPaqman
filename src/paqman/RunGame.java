@@ -18,35 +18,41 @@ public class RunGame{
     public static String pacmanpath;
     public static String ghostspath;
     public static JFrame window;
-    public static JFrame windowExit;
     public static Menu menu;
     public static Game game;
+    public static GameOver over;
     
     public static void startGame(){
+        window.remove(menu);
+        prepare();
+    }
+    
+    public static void playAgain(){
+        window.remove(over);
+        prepare();
+    }
+    
+    private static void prepare(){
+        game.resize(window);
         game.setFirstStage(mappath, ghostspath, pacmanpath);
         game.stage.setVisible(true);
-        game.resize(window);
-        window.remove(menu);
         window.add(game.stage);
         game.stage.requestFocus();
     }
     
-    public static void playAgain(){
-        
-    }
-    
-    public static void endGame() throws IOException{
-        GameOver over= new GameOver();
-        windowExit=new JFrame();
-        windowExit.add(over);
-        window.setVisible(false);
+    public static void endGame(boolean win) throws IOException {
+        over.setWin(win);
+        window.remove(game.stage);
+        window.add(over);
+        over.resize(14*TILE_LEN, 14*TILE_LEN);
         over.setVisible(true);
-        windowExit.setVisible(true);
+        window.repaint();
     }
     
     public static void main(String args[]) throws IOException{
         window = new JFrame();
         menu = new Menu();
+        over = new GameOver();
         game = game.getInstance();
         menu.setVisible(true);
         window.setSize(12*TILE_LEN,12*TILE_LEN);
@@ -54,6 +60,9 @@ public class RunGame{
         window.add(menu);
    }
 }
+
+
+
 
 /*COMENTARIOS eliminados de arriba, por si se requieren usar aquí siguen.
  * Borrar cuando no se utilicen.
