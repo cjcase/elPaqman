@@ -19,29 +19,29 @@ import javax.swing.ImageIcon;
 // Code by cjcase
 public class Character implements Runnable{
 
-    private Point2D location;
-    private Point2D map_location_px;
+    protected Point2D location;
+    protected Point2D map_location_px;
     enum Direction{UP, DOWN, RIGHT, LEFT, STATIC};
     
-    private Image[] up_animation;
-    private Image[] down_animation;
-    private Image[] left_animation;
-    private Image[] right_animation;
-    private int up_animation_length;
-    private int down_animation_length;
-    private int left_animation_length;
-    private int right_animation_length;
-    private Stage stage;
-    private float delta;
-    private float acumulated_delta;
-    private int current_animation_index;
-    private int tmp_animation_index;
+    protected Image[] up_animation;
+    protected Image[] down_animation;
+    protected Image[] left_animation;
+    protected Image[] right_animation;
+    protected int up_animation_length;
+    protected int down_animation_length;
+    protected int left_animation_length;
+    protected int right_animation_length;
+    protected Stage stage;
+    protected float delta;
+    protected float acumulated_delta;
+    protected int current_animation_index;
+    protected int tmp_animation_index;
     //boundary;
-    private String config_file;
-    private Direction pacman_direction;
+    protected String config_file;
+    protected Direction pacman_direction;
     Thread runner;
-    private Point2D upper_left_boundary;
-    private Point2D lower_right_boundary;
+    protected Point2D upper_left_boundary;
+    protected Point2D lower_right_boundary;
     //stage references
     
     
@@ -57,14 +57,13 @@ public class Character implements Runnable{
         this.stage = new_stage;
         pacman_direction =  Direction.UP;
         read_config(path);
-        map_location_px = new Point2D.Double(0,0);
         upper_left_boundary = new Point2D.Double(0,0);
         lower_right_boundary = new Point2D.Double(0,0);
         current_animation_index = 0;
         runner = new Thread(this, "character");
         runner.start();
     }
-
+    
     public void move(){
         //set_direction(direction);
         //System.out.println("is_relative_pos_updated: " + is_relative_pos_updated());
@@ -105,43 +104,43 @@ public class Character implements Runnable{
         int matrix[][] =  stage.getMatrix();
         switch(pacman_direction){
             case UP:
-                if((int)location.getY() >= 0 && map_location_px.getY() > (location.getY() * 40)){
+                if((int)location.getY() >= 0 && map_location_px.getY() > (location.getY() * RunGame.TILE_LEN)){
                     return true;
                 }
-                if((map_location_px.getY() - (location.getY() * 40) < 2) && matrix[(int)location.getY()-1][(int)location.getX()] == 0 ){
+                if((map_location_px.getY() - (location.getY() * RunGame.TILE_LEN) < 2) && matrix[(int)location.getY()-1][(int)location.getX()] != 1 ){
                     return true;
                 }
                 return false;
                 
             case DOWN:
-                if((int)location.getY() < stage.getMatrix_height()-1 && matrix[(int)location.getY()+1][(int)location.getX()] == 0){
+                if((int)location.getY() < stage.getMatrix_height()-1 && matrix[(int)location.getY()+1][(int)location.getX()] != 1){
                     return true;
                 }else{
                     return false;
                 }
                 //
             case LEFT:
-                System.out.println((upper_left_boundary.getY() - location.getY()*40) < 2);
-                System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * 40)));
-                System.out.println(lower_right_boundary.getY());
-                System.out.println((((location.getY()+1) * 40)));
-                if((int)location.getX() >= 0 && map_location_px.getX() > (location.getX() * 40) && 
-                        ((upper_left_boundary.getY() - location.getY()*40) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * 40)){
+                //System.out.println((upper_left_boundary.getY() - location.getY()*RunGame.TILE_LEN) < 2);
+                //System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * RunGame.TILE_LEN)));
+                //System.out.println(lower_right_boundary.getY());
+                //System.out.println((((location.getY()+1) * RunGame.TILE_LEN)));
+                if((int)location.getX() >= 0 && map_location_px.getX() > (location.getX() * RunGame.TILE_LEN) && 
+                        ((upper_left_boundary.getY() - location.getY()*RunGame.TILE_LEN) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * RunGame.TILE_LEN)){
                     return true;
                 }
-                System.out.println((upper_left_boundary.getY() - location.getY()*40) < 2);
-                System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * 40)));
-                System.out.println(lower_right_boundary.getY());
-                System.out.println((((location.getY()+1) * 40)));
-                if((((upper_left_boundary.getY() - location.getY()*40) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * 40) &&
-                        map_location_px.getX() - (location.getX() * 40) < 2) && matrix[(int)location.getY()][(int)location.getX()-1] == 0){
+                //System.out.println((upper_left_boundary.getY() - location.getY()*RunGame.TILE_LEN) < 2);
+                //System.out.println((lower_right_boundary.getY() <= ((location.getY()+1) * RunGame.TILE_LEN)));
+                //System.out.println(lower_right_boundary.getY());
+                //System.out.println((((location.getY()+1) * RunGame.TILE_LEN)));
+                if((((upper_left_boundary.getY() - location.getY()*RunGame.TILE_LEN) < 2) && lower_right_boundary.getY() <= ((location.getY()+1) * RunGame.TILE_LEN) &&
+                        map_location_px.getX() - (location.getX() * RunGame.TILE_LEN) < 2) && matrix[(int)location.getY()][(int)location.getX()-1] != 1){
                     return true;
                 }
                 return false;
                 
                 //break;
             case RIGHT:
-                if(location.getX() < stage.getMatrix_width()-1 &&matrix[(int)location.getY()][(int)location.getX()+1] == 0 && (map_location_px.getY()-location.getY()*40) < 2){
+                if(location.getX() < stage.getMatrix_width()-1 &&matrix[(int)location.getY()][(int)location.getX()+1] != 1 && (map_location_px.getY()-location.getY()*RunGame.TILE_LEN) < 2){
                     return true;
                 }
                 return false;
@@ -154,7 +153,7 @@ public class Character implements Runnable{
     
     private void update_boundaries(){
         upper_left_boundary.setLocation(map_location_px.getX(), map_location_px.getY());
-        lower_right_boundary.setLocation(map_location_px.getX() + 40, map_location_px.getY() + 40);
+        lower_right_boundary.setLocation(map_location_px.getX() + RunGame.TILE_LEN, map_location_px.getY() + RunGame.TILE_LEN);
     }
     
     private void update_location_in_matrix(){
@@ -175,13 +174,13 @@ public class Character implements Runnable{
             case STATIC:
                 break;
         }*/
-        location.setLocation((int)(map_location_px.getX()) / 40 , (int)(map_location_px.getY()) / 40 );
+        location.setLocation((int)(map_location_px.getX()) / RunGame.TILE_LEN , (int)(map_location_px.getY()) / RunGame.TILE_LEN );
     }
     
     private boolean is_relative_pos_updated(){
         int width = stage.getWidth();
         int height =  stage.getHeight();
-        int squares_size_px = 40;//height / stage.getMatrix_height();
+        int squares_size_px = RunGame.TILE_LEN;//height / stage.getMatrix_height();
  
         if( (Math.abs(((location.getX() * squares_size_px)) - map_location_px.getX()) < 2)  &&
             (Math.abs(((location.getY() * squares_size_px)) - map_location_px.getY()) < 2)){
@@ -194,7 +193,7 @@ public class Character implements Runnable{
     private void update_location_in_pixels(){
         int width = stage.getWidth();
         int height =  stage.getHeight();
-        int squares_size_px = 40;
+        int squares_size_px = RunGame.TILE_LEN;
         /*
         System.out.println("location.getX() " + location.getX() + " * " + squares_size_px + " map_location_px.getX "+ map_location_px.getX());
         
@@ -221,7 +220,7 @@ public class Character implements Runnable{
         */
         switch(pacman_direction){
             case UP:
-                if(map_location_px.getY() > 0 && canMove() && canMove())
+                if(map_location_px.getY() > 0 && canMove())
                  map_location_px.setLocation(map_location_px.getX(), map_location_px.getY() - delta);
                 break;
                 
@@ -231,7 +230,7 @@ public class Character implements Runnable{
                 break;
                 
             case LEFT:
-                if(map_location_px.getX() > 0 && canMove() && canMove())
+                if(map_location_px.getX() > 0 && canMove())
                 map_location_px.setLocation(map_location_px.getX() - delta, map_location_px.getY());
                 break;
                 
@@ -257,6 +256,9 @@ public class Character implements Runnable{
         return acumulated_delta;
     }
     
+    public Point2D getLocation() {
+        return location;
+    }
     
     public void read_config(String path){
         //config_file = path;
@@ -319,10 +321,10 @@ public class Character implements Runnable{
                 }
                 animation_type++;
             }
+            
             location =  new Point2D.Double(Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()));
+            map_location_px = new Point2D.Double(location.getX()*RunGame.TILE_LEN,location.getY()*RunGame.TILE_LEN);
             delta = (float) Float.parseFloat(br.readLine());
-            //System.out.println(location.getX());
-            //System.out.println(location.getY());
             //Close the input stream
             in.close();
             
@@ -385,7 +387,9 @@ public class Character implements Runnable{
         //g2d.draw
     }
     
-    
+    public String locationToString(){
+        return "location:<"+location.getX()+","+location.getY()+"> map_loc_px <"+map_location_px.getX()+","+map_location_px.getY()+">";
+    }
     
     @Override
     public void run() {

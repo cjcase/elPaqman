@@ -15,5 +15,5 @@ img/pacman/right/right1.png
 img/pacman/right/right2.png
 img/pacman/right/right3.png
 0
-0
+2
 10
