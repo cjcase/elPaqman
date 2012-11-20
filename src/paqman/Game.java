@@ -30,8 +30,8 @@ public class Game {
         score = 0;
         stage = new Stage(mappath);
         stage.setVisible(true);
-        stage.add_ghost(ghostpath);
         stage.add_pacman(new Pacman(pacmanpath, stage));
+        stage.add_ghost(ghostpath);        
     }
     
     public void resize(JFrame window){

@@ -48,7 +48,7 @@ public class Character implements Runnable{
     public Character(String path){
         config_file = path;
         read_config(path);
-        pacman_direction =  Direction.UP;
+        pacman_direction =  Direction.STATIC;
         map_location_px = new Point2D.Double(0,0);
     }
     
@@ -60,6 +60,10 @@ public class Character implements Runnable{
         upper_left_boundary = new Point2D.Double(0,0);
         lower_right_boundary = new Point2D.Double(0,0);
         current_animation_index = 0;
+        this.runMe();
+    }
+    
+    private void runMe(){
         runner = new Thread(this, "character");
         runner.start();
     }

@@ -70,6 +70,12 @@ public class Stage extends JPanel implements ActionListener{
         scoreS = "Score: " + 0 + " Lifes: " + 3;
     }
 
+    public int getPacman_location(){
+        int x = (int)pacman.getLocation().getX();
+        int y = (int)pacman.getLocation().getY();
+        return (y * this.getMatrix_width()) + x;
+    }
+    
     public int[][] getMatrix() {
         return matrix;
     }
