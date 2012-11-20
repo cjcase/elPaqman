@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
 
 // Code by cjcase
 public class Ghost extends Character {
@@ -30,7 +32,9 @@ public class Ghost extends Character {
     private class task extends TimerTask{
         @Override
         public void run() {
+            System.out.println("Recalculando Ruta...");
             createLpModel();
+            calcResult();
         }
     }  
   
@@ -48,6 +52,27 @@ public class Ghost extends Character {
             try {
                 runner.sleep(100);
             } catch (InterruptedException ex) {}
+        }
+    }
+  
+  public void calcResult(){
+    
+        //if(result_matrix == null)return;
+        //LPSOLVE!
+        try{
+            //readLp(filename, verbose, modelName);
+            LpSolve solver = LpSolve.readLp("paq.lp", 0, null);
+            
+            //resolver
+            solver.solve();
+            double[] var = solver.getPtrVariables();
+            
+            System.out.println("PtrVar: "+var.length);
+            
+            //liberar la memoria
+            solver.deleteLp();
+        } catch(LpSolveException e){
+            System.out.println("Error: " + e.getMessage());
         }
     }
   

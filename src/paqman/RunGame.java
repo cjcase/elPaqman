@@ -56,6 +56,7 @@ public class RunGame{
         game = game.getInstance();
         menu.setVisible(true);
         window.setSize(12*TILE_LEN,12*TILE_LEN);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setVisible(true);
         window.add(menu);
    }

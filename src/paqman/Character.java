@@ -55,7 +55,7 @@ public class Character implements Runnable{
     public Character(String path, Stage new_stage){
         config_file = path;
         this.stage = new_stage;
-        pacman_direction =  Direction.UP;
+        pacman_direction =  Direction.STATIC;
         read_config(path);
         upper_left_boundary = new Point2D.Double(0,0);
         lower_right_boundary = new Point2D.Double(0,0);

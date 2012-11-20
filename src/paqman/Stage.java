@@ -36,7 +36,7 @@ public class Stage extends JPanel implements ActionListener{
     private int matrix[][];
     private int matrix_width;
     private int matrix_height;
-    private Vector<Character> ghosts;
+    private Vector<Ghost> ghosts;
     private Pacman pacman;
     private Timer timer;
     private Vector<LineTrace> tracert;
@@ -101,7 +101,7 @@ public class Stage extends JPanel implements ActionListener{
     }
     
     public void add_ghost(String config){
-        Character ghost = new Character(config, this);
+        Ghost ghost = new Ghost(config, this);
         ghosts.add(ghost);
     }
     
@@ -145,8 +145,8 @@ public class Stage extends JPanel implements ActionListener{
     }
     
     private void drawGhosts(Graphics g){
-        Iterator <Character>itr = ghosts.iterator();
-        Character ghost;
+        Iterator <Ghost>itr = ghosts.iterator();
+        Ghost ghost;
         
         while(itr.hasNext()){
             ghost = itr.next();
@@ -370,8 +370,8 @@ public class Stage extends JPanel implements ActionListener{
     }
 
     private void calculeGhostCol() throws IOException{
-        Iterator <Character>itr = ghosts.iterator();
-        Character ghost;
+        Iterator <Ghost>itr = ghosts.iterator();
+        Ghost ghost;
         while(itr.hasNext()){
             ghost = itr.next();
             if((int)ghost.getLocation().getY()==(int)pacman.getLocation().getY() &&
@@ -421,6 +421,9 @@ public class Stage extends JPanel implements ActionListener{
                   break;
               case KeyEvent.VK_RIGHT:
                   pacman.set_direction(3);
+                  break;
+              case KeyEvent.VK_ESCAPE:
+                  System.exit(0);
                   break;
           }
 
