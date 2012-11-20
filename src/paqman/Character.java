@@ -21,7 +21,7 @@ public class Character implements Runnable{
 
     protected Point2D location;
     protected Point2D map_location_px;
-    enum Direction{UP, DOWN, RIGHT, LEFT, STATIC};
+    enum Direction{UP, DOWN, LEFT, RIGHT, STATIC};
     
     protected Image[] up_animation;
     protected Image[] down_animation;

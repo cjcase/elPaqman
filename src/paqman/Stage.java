@@ -19,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -74,6 +75,10 @@ public class Stage extends JPanel implements ActionListener{
         int x = (int)pacman.getLocation().getX();
         int y = (int)pacman.getLocation().getY();
         return (y * this.getMatrix_width()) + x;
+    }
+    
+    public Point2D getPacman_point(){
+        return pacman.getLocation();
     }
     
     public int[][] getMatrix() {

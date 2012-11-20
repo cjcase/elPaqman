@@ -7,9 +7,12 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 
@@ -18,7 +21,7 @@ public class Ghost extends Character {
     
     //Global Vars
     private Timer interval;
-    private ArrayList<Integer> directions;
+    private ArrayList<Direction> directions;
     private final int delaySec = 5;
     
     String right[][];
@@ -27,6 +30,9 @@ public class Ghost extends Character {
     String down[][];
     
     HashMap<String,ArrayList<String>> nodos;
+    HashMap<Integer,String> varDict;
+    ArrayList<Integer> rIndex;
+    ArrayList<String> result;
     
     //Timed task class
     private class task extends TimerTask{
@@ -34,7 +40,8 @@ public class Ghost extends Character {
         public void run() {
             System.out.println("Recalculando Ruta...");
             createLpModel();
-            calcResult();
+            getResult();
+            calcRoute();
         }
     }  
   
@@ -43,6 +50,7 @@ public class Ghost extends Character {
         super(path, stage);
         interval = new Timer();
         interval.scheduleAtFixedRate(new task(), 0, delaySec * 1000); //cada n segundos recalcular ruta
+        varDict = new HashMap<Integer,String>();
     }
     
   @Override
@@ -55,29 +63,74 @@ public class Ghost extends Character {
         }
     }
   
-  public void calcResult(){
-    
-        //if(result_matrix == null)return;
-        //LPSOLVE!
-        try{
-            //readLp(filename, verbose, modelName);
-            LpSolve solver = LpSolve.readLp("paq.lp", 0, null);
-            
-            //resolver
-            solver.solve();
-            double[] var = solver.getPtrVariables();
-            
-            System.out.println("PtrVar: "+var.length);
-            
-            //liberar la memoria
-            solver.deleteLp();
-        } catch(LpSolveException e){
-            System.out.println("Error: " + e.getMessage());
+  public void calcRoute(){
+    //directions = new ArrayList<Direction>();
+    Collections.sort(rIndex);
+    int myPos = (int)this.location.getX() + ((int)this.location.getY() * stage.getMatrix_width());
+    int pacPos = stage.getPacman_location();
+    if(myPos >= pacPos){
+        Collections.reverse(rIndex);
+    }
+    int size = rIndex.size();
+    for(int i = 0; i < size-1; i++){
+        int me = rIndex.get(i);
+        int next = rIndex.get(i+1);
+        if(me == next){
+            continue;
+        }
+        if(me < next){
+            if(me + 1 == next){
+                this.pacman_direction = Direction.RIGHT;
+                System.out.print("Derecha ");
+            } else {
+                this.pacman_direction = Direction.DOWN;
+                System.out.print("Abajo ");
+            }              
+        }
+        if(me > next){
+            if(me == next + 1){
+                this.pacman_direction = Direction.LEFT;
+                System.out.print("Izquierda ");
+            } else {
+                this.pacman_direction = Direction.UP;
+                System.out.print("Arriba ");
+            }
         }
     }
+    System.out.println();
+  }
+  
+  public void getResult(){
+    //LPSOLVE!
+    result = new ArrayList<String>();
+    try{
+        //readLp(filename, verbose, modelName);
+        LpSolve solver = LpSolve.readLp("paq.lp", 0, null);
+
+        //resolver
+        rIndex= new ArrayList<Integer>();
+        solver.solve();
+        double[] var = solver.getPtrVariables();
+        for(int i = 0; i < var.length; i++){
+            if(var[i] == 1){
+                String s = varDict.get(i);
+                result.add(s);
+                int n = Integer.parseInt(s.substring(1,4));
+                rIndex.add(n);
+                n = Integer.parseInt(s.substring(4,7));
+                rIndex.add(n);
+            }
+        }
+        
+        //liberar la memoria
+        solver.deleteLp();
+    } catch(LpSolveException e){
+        System.out.println("Error: " + e.getMessage());
+    }
+  }
   
   private String createLpModel(){
-      //here goes magic
+      //here goes 
       int x = stage.getMatrix_width();
       int y = stage.getMatrix_height();
       int[][] blocks = stage.getMatrix();
@@ -89,7 +142,6 @@ public class Ghost extends Character {
       down = new String[y - 1][x];
       
       nodos = new HashMap<String, ArrayList<String>>();
-      
       NumberFormat form = new DecimalFormat("000"); //Con esta regla, el escenario debe ser MxN =< 999
       String file;
       
@@ -106,6 +158,7 @@ public class Ghost extends Character {
       
       /* Generación de variables */
       //Conexiones a la derecha e izquierda
+      int numVars = 0;
       for(int i = 0; i < y; i++){
           for(int j = 0; j < x - 1; j++){
               right[i][j] = "x" + form.format((x*i) + j) + form.format((x*i) + (j + 1));
@@ -308,6 +361,8 @@ public class Ghost extends Character {
         aux = "//Conexiones a la derecha\n";
         for(int i = 0; i < y; i++){
           for(int j = 0; j < x - 1; j++){
+                varDict.put(numVars, right[i][j]);
+                numVars++;
                 aux = aux + right[i][j] + " , ";
             }
             aux = aux + "\n";
@@ -318,6 +373,8 @@ public class Ghost extends Character {
         aux = "//Conexiones a la izquierda\n";
         for(int i = 0; i < y; i++){
           for(int j = 0; j < x - 1; j++){
+                varDict.put(numVars, left[i][j]);
+                numVars++;
                 aux = aux + left[i][j] + " , ";
             }
             aux = aux + "\n";
@@ -328,6 +385,8 @@ public class Ghost extends Character {
         aux = "//Conexiones hacia arriba\n";
         for(int i = 0; i < y - 1; i++){
           for(int j = 0; j < x; j++){
+              varDict.put(numVars, up[i][j]);
+              numVars++;
               aux = aux + up[i][j] + " , ";
             }
             aux = aux + "\n";
@@ -338,6 +397,8 @@ public class Ghost extends Character {
         aux = "//Conexiones hacia abajo\n";
         for(int i = 0; i < y - 1; i++){
           for(int j = 0; j < x; j++){
+              varDict.put(numVars, down[i][j]);
+              numVars++;
               if(i == (y-1)-1 && j == x-1){
                 aux = aux + down[i][j] + " ; ";
               } else {
@@ -347,7 +408,7 @@ public class Ghost extends Character {
             aux = aux + "\n";
         }
         file = file + aux;
-        
+        //System.out.println("numVar: " + numVars);
         try {
             FileWriter fstream = new FileWriter("paq.lp");
             BufferedWriter fout = new BufferedWriter(fstream);
